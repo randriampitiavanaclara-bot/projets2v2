@@ -1,0 +1,275 @@
+--<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Football Madagascar - Championnat</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#eef5f1;color:#172033}
+header{background:linear-gradient(135deg,#006b3c,#008c4f);color:white;padding:18px;text-align:center}
+header h1{margin:0;font-size:28px} header p{margin:7px 0 0}
+.auth{max-width:420px;margin:55px auto;background:white;padding:25px;border-radius:14px;box-shadow:0 5px 20px #0002}
+.auth h2{text-align:center;color:#006b3c}
+input,select{width:100%;padding:11px;margin:6px 0;border:1px solid #cbd5e1;border-radius:7px}
+button{border:0;padding:11px 15px;border-radius:7px;cursor:pointer;font-weight:bold}
+.btn{width:100%;margin-top:7px;background:#008c4f;color:white}
+.btn.blue{background:#2563eb}.btn.red{background:#dc2626}
+.demo{text-align:center;font-size:13px;color:#64748b}
+#app{display:none}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:10px 18px;background:#063d29;color:white}
+.topbar button{background:#dc2626;color:white}
+nav{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;background:#06281f;padding:10px}
+nav button{background:#1b5e48;color:white}
+nav button.active,nav button:hover{background:#22c55e;color:#06281f}
+.container{max-width:1200px;margin:auto;padding:20px}
+.tab{display:none}.tab.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+.card{background:white;border-radius:12px;padding:18px;box-shadow:0 3px 12px #0001;margin-bottom:18px}
+.card h2,.card h3{margin-top:0;color:#006b3c}
+table{width:100%;border-collapse:collapse;background:white}
+th,td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:center}
+th{background:#006b3c;color:white}
+.team{display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px solid #eee}
+.badge{width:43px;height:43px;border-radius:50%;background:#008c4f;color:white;display:flex;align-items:center;justify-content:center;font-weight:bold}
+.match{padding:14px;border:1px solid #dbe5df;border-radius:9px;margin:8px 0;background:#f8faf9}
+.score{font-size:22px;font-weight:bold;color:#006b3c}
+.stat{font-size:28px;font-weight:bold;color:#008c4f}
+.status{display:inline-block;padding:4px 8px;border-radius:20px;font-size:12px;background:#dcfce7;color:#166534}
+footer{text-align:center;padding:20px;color:#64748b}
+.hidden{display:none}
+@media(max-width:600px){header h1{font-size:22px}.container{padding:10px}}
+</style>
+</head>
+<body>
+
+<div id="loginPage">
+<div class="auth">
+<h2>⚽ FOOTBALL MADAGASCAR 🇲🇬</h2>
+<p style="text-align:center">Gestion du championnat de football malgache</p>
+<input id="loginEmail" type="email" placeholder="Email">
+<input id="loginPassword" type="password" placeholder="Mot de passe">
+<button class="btn blue" onclick="login()">Se connecter</button>
+<button class="btn" onclick="register()">Créer un compte</button>
+<p class="demo">Compte démo : admin@football.mg / 1234</p>
+<p id="authMessage" style="text-align:center;color:#dc2626"></p>
+</div>
+</div>
+
+<div id="app">
+<header>
+<h1>⚽ FOOTBALL MADAGASCAR 🇲🇬</h1>
+<p>Championnat national — Saison 2026</p>
+</header>
+
+<div class="topbar">
+<span>👤 Connecté : <b id="userName"></b></span>
+<button onclick="logout()">Se déconnecter</button>
+</div>
+
+<nav>
+<button class="active" onclick="showTab('accueil',this)">Accueil</button>
+<button onclick="showTab('equipes',this)">Équipes</button>
+<button onclick="showTab('joueurs',this)">Joueurs</button>
+<button onclick="showTab('matchs',this)">Matchs</button>
+<button onclick="showTab('classement',this)">Classement</button>
+<button onclick="showTab('stats',this)">Statistiques</button>
+</nav>
+
+<main class="container">
+
+<section id="accueil" class="tab active">
+<div class="grid">
+<div class="card"><h3>🇲🇬 Championnat</h3><div class="stat">2026</div><p>Football à Madagascar</p></div>
+<div class="card"><h3>⚽ Équipes</h3><div class="stat" id="nbEquipes"></div><p>Équipes participantes</p></div>
+<div class="card"><h3>🗓️ Matchs</h3><div class="stat" id="nbMatchs"></div><p>Matchs enregistrés</p></div>
+<div class="card"><h3>👟 Joueurs</h3><div class="stat" id="nbJoueurs"></div><p>Joueurs enregistrés</p></div>
+</div>
+<div class="card"><h2>🔥 Derniers résultats</h2><div id="accueilMatchs"></div></div>
+</section>
+
+<section id="equipes" class="tab">
+<div class="grid">
+<div class="card">
+<h2>➕ Ajouter une équipe</h2>
+<input id="eqNom" placeholder="Nom de l'équipe">
+<input id="eqVille" placeholder="Ville">
+<button class="btn" onclick="addEquipe()">Ajouter l'équipe</button>
+</div>
+<div class="card"><h2>🇲🇬 Équipes malgaches</h2><div id="listeEquipes"></div></div>
+</div>
+</section>
+
+<section id="joueurs" class="tab">
+<div class="grid">
+<div class="card">
+<h2>➕ Ajouter un joueur</h2>
+<select id="joueurEquipe"></select>
+<input id="joueurNom" placeholder="Nom du joueur">
+<input id="joueurPoste" placeholder="Poste">
+<button class="btn" onclick="addJoueur()">Ajouter</button>
+</div>
+<div class="card"><h2>👟 Effectifs</h2><div id="listeJoueurs"></div></div>
+</div>
+</section>
+
+<section id="matchs" class="tab">
+<div class="card">
+<h2>⚽ Enregistrer un résultat</h2>
+<div class="grid">
+<select id="eq1"></select><select id="eq2"></select>
+<input id="score1" type="number" min="0" value="0">
+<input id="score2" type="number" min="0" value="0">
+<input id="dateMatch" type="date">
+<input id="stade" placeholder="Stade">
+</div>
+<button class="btn" onclick="addMatch()">Enregistrer le match</button>
+</div>
+<div class="card"><h2>🗓️ Matchs / Résultats</h2><div id="listeMatchs"></div></div>
+</section>
+
+<section id="classement" class="tab">
+<div class="card">
+<h2>🏆 Classement du championnat</h2>
+<table><thead><tr><th>#</th><th>Équipe</th><th>Pts</th><th>J</th><th>G</th><th>N</th><th>P</th><th>BP</th><th>BC</th><th>Diff</th></tr></thead>
+<tbody id="tableClassement"></tbody></table>
+</div>
+</section>
+
+<section id="stats" class="tab">
+<div class="grid">
+<div class="card"><h2>🏅 Meilleur buteur</h2><div id="meilleurButeur"></div></div>
+<div class="card"><h2>📊 Buteurs</h2><div id="statsJoueurs"></div></div>
+</div>
+</section>
+
+</main>
+<footer>© 2026 Football Madagascar — Application de championnat</footer>
+</div>
+
+<script>
+let users=JSON.parse(localStorage.getItem("mg_users")||'[{"email":"admin@football.mg","password":"1234","name":"Administrateur"}]');
+let currentUser=JSON.parse(localStorage.getItem("mg_current")||"null");
+
+let equipes=[
+{id:1,nom:"Fosa Juniors FC",ville:"Mahajanga"},
+{id:2,nom:"Elgeco Plus",ville:"Antananarivo"},
+{id:3,nom:"CFFA",ville:"Antananarivo"},
+{id:4,nom:"Ajesaia",ville:"Antananarivo"},
+{id:5,nom:"Disciples FC",ville:"Antananarivo"},
+{id:6,nom:"COSFA",ville:"Antananarivo"},
+{id:7,nom:"Mama FCA",ville:"Antananarivo"},
+{id:8,nom:"Zanakala FC",ville:"Fianarantsoa"},
+{id:9,nom:"USCA Foot",ville:"Antananarivo"},
+{id:10,nom:"3FB Toliara",ville:"Toliara"}
+];
+
+let joueurs=[
+{id:1,equipeId:1,nom:"Tsiry",poste:"Attaquant",buts:4},
+{id:2,equipeId:2,nom:"Clément",poste:"Attaquant",buts:3},
+{id:3,equipeId:3,nom:"Jean Yves",poste:"Milieu",buts:2},
+{id:4,equipeId:4,nom:"Ando",poste:"Attaquant",buts:3},
+{id:5,equipeId:5,nom:"Faneva",poste:"Attaquant",buts:5},
+{id:6,equipeId:6,nom:"Tojo",poste:"Défenseur",buts:1}
+];
+
+let matchs=[
+{id:1,eq1:1,eq2:2,s1:2,s2:1,date:"2026-09-20",stade:"Stade Rabemananjara"},
+{id:2,eq1:3,eq2:4,s1:1,s2:1,date:"2026-09-21",stade:"Stade Mahamasina"},
+{id:3,eq1:5,eq2:6,s1:3,s2:0,date:"2026-09-22",stade:"Stade Mahamasina"},
+{id:4,eq1:7,eq2:8,s1:2,s2:2,date:"2026-09-23",stade:"Stade Elgeco Plus"},
+{id:5,eq1:9,eq2:10,s1:1,s2:0,date:"2026-09-24",stade:"Stade Mahamasina"}
+];
+
+function save(){
+localStorage.setItem("mg_users",JSON.stringify(users));
+localStorage.setItem("mg_equipes",JSON.stringify(equipes));
+localStorage.setItem("mg_joueurs",JSON.stringify(joueurs));
+localStorage.setItem("mg_matchs",JSON.stringify(matchs));
+}
+function load(){
+let e=localStorage.getItem("mg_equipes"),j=localStorage.getItem("mg_joueurs"),m=localStorage.getItem("mg_matchs");
+if(e)equipes=JSON.parse(e);if(j)joueurs=JSON.parse(j);if(m)matchs=JSON.parse(m);
+}
+function register(){
+let email=loginEmail.value.trim(),pass=loginPassword.value.trim();
+if(!email||!pass){authMessage.textContent="Remplissez les champs.";return}
+if(users.some(u=>u.email===email)){authMessage.textContent="Ce compte existe déjà.";return}
+users.push({email,password:pass,name:email.split("@")[0]});
+localStorage.setItem("mg_users",JSON.stringify(users));
+authMessage.style.color="#16a34a";authMessage.textContent="Compte créé. Vous pouvez vous connecter.";
+}
+function login(){
+let email=loginEmail.value.trim(),pass=loginPassword.value.trim();
+let u=users.find(x=>x.email===email&&x.password===pass);
+if(!u){authMessage.textContent="Email ou mot de passe incorrect.";return}
+currentUser=u;localStorage.setItem("mg_current",JSON.stringify(u));init();
+}
+function logout(){
+localStorage.removeItem("mg_current");currentUser=null;
+app.style.display="none";loginPage.style.display="block";
+loginEmail.value="";loginPassword.value="";
+}
+function init(){
+if(!currentUser){loginPage.style.display="block";app.style.display="none";return}
+loginPage.style.display="none";app.style.display="block";userName.textContent=currentUser.name||currentUser.email;
+renderAll();
+}
+function showTab(id,btn){
+document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
+btn.classList.add("active");renderAll();
+}
+function nomEquipe(id){return equipes.find(e=>e.id===id)?.nom||"Équipe inconnue"}
+function addEquipe(){
+let nom=eqNom.value.trim(),ville=eqVille.value.trim();
+if(!nom)return alert("Entrez le nom.");
+equipes.push({id:Date.now(),nom,ville});eqNom.value="";eqVille.value="";save();renderAll();
+}
+function addJoueur(){
+let equipeId=Number(joueurEquipe.value),nom=joueurNom.value.trim(),poste=joueurPoste.value.trim();
+if(!nom||!equipeId)return alert("Remplissez les champs.");
+joueurs.push({id:Date.now(),equipeId,nom,poste,buts:0});
+joueurNom.value="";joueurPoste.value="";save();renderAll();
+}
+function addMatch(){
+let a=Number(eq1.value),b=Number(eq2.value);
+if(!a||!b||a===b)return alert("Choisissez deux équipes différentes.");
+matchs.push({id:Date.now(),eq1:a,eq2:b,s1:Number(score1.value)||0,s2:Number(score2.value)||0,
+date:dateMatch.value||new Date().toISOString().slice(0,10),stade:stade.value||"Stade non indiqué"});
+save();renderAll();
+}
+function renderEquipes(){
+listeEquipes.innerHTML=equipes.map(e=>`<div class="team"><div class="badge">${e.nom.substring(0,2).toUpperCase()}</div><div><b>${e.nom}</b><br><small>📍 ${e.ville}</small></div></div>`).join("");
+let o=equipes.map(e=>`<option value="${e.id}">${e.nom}</option>`).join("");
+eq1.innerHTML=eq2.innerHTML=joueurEquipe.innerHTML=o;
+}
+function renderJoueurs(){
+listeJoueurs.innerHTML=joueurs.map(j=>`<div class="team"><div class="badge">⚽</div><div><b>${j.nom}</b><br>${j.poste} — ${nomEquipe(j.equipeId)}<br>⚽ ${j.buts} but(s)</div></div>`).join("");
+let s=[...joueurs].sort((a,b)=>b.buts-a.buts),best=s[0];
+meilleurButeur.innerHTML=best?`<h3>🏆 ${best.nom}</h3><p>${nomEquipe(best.equipeId)}</p><div class="stat">⚽ ${best.buts}</div>`:"Aucun";
+statsJoueurs.innerHTML=s.map(j=>`<p><b>${j.nom}</b> — ${j.buts} but(s) — ${nomEquipe(j.equipeId)}</p>`).join("");
+}
+function renderMatchs(){
+listeMatchs.innerHTML=matchs.slice().reverse().map(m=>`<div class="match"><span class="status">TERMINÉ</span><br><b>${nomEquipe(m.eq1)}</b> <span class="score">${m.s1} - ${m.s2}</span> <b>${nomEquipe(m.eq2)}</b><br><small>📅 ${m.date} | 🏟️ ${m.stade}</small></div>`).join("");
+accueilMatchs.innerHTML=matchs.slice().reverse().slice(0,5).map(m=>`<div class="match"><b>${nomEquipe(m.eq1)}</b> ${m.s1} - ${m.s2} <b>${nomEquipe(m.eq2)}</b></div>`).join("");
+}
+function renderClassement(){
+let d={};equipes.forEach(e=>d[e.id]={nom:e.nom,pts:0,j:0,g:0,n:0,p:0,bp:0,bc:0});
+matchs.forEach(m=>{
+if(!d[m.eq1]||!d[m.eq2])return;let a=d[m.eq1],b=d[m.eq2];
+a.j++;b.j++;a.bp+=m.s1;a.bc+=m.s2;b.bp+=m.s2;b.bc+=m.s1;
+if(m.s1>m.s2){a.g++;a.pts+=3;b.p++}else if(m.s2>m.s1){b.g++;b.pts+=3;a.p++}else{a.n++;b.n++;a.pts++;b.pts++}
+});
+let c=Object.values(d).sort((a,b)=>b.pts-a.pts||(b.bp-b.bc)-(a.bp-a.bc));
+tableClassement.innerHTML=c.map((e,i)=>`<tr><td>${i+1}</td><td style="text-align:left"><b>${e.nom}</b></td><td><b>${e.pts}</b></td><td>${e.j}</td><td>${e.g}</td><td>${e.n}</td><td>${e.p}</td><td>${e.bp}</td><td>${e.bc}</td><td>${e.bp-e.bc}</td></tr>`).join("");
+}
+function renderAll(){
+renderEquipes();renderJoueurs();renderMatchs();renderClassement();
+nbEquipes.textContent=equipes.length;nbMatchs.textContent=matchs.length;nbJoueurs.textContent=joueurs.length;
+}
+load();init();
+</script>
+</body>
+</html>
